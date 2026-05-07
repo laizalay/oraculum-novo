@@ -16,7 +16,7 @@ export default function ForgotPassword() {
     setLoading(true);
     try {
       await resetPassword(email);
-      setMessage("E-mail de recuperação enviado! Verifique sua caixa de entrada.");
+      setMessage("Se o e-mail estiver cadastrado, você receberá um link de redefinição em breve.");
     } catch {
       setError("Não foi possível enviar o e-mail. Verifique o endereço informado.");
     } finally {
@@ -37,7 +37,8 @@ export default function ForgotPassword() {
           <p className="text-white/70 text-sm">Recuperar senha</p>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg">
-          <h2 className="text-[#1F3864] font-semibold text-lg mb-4">Esqueci minha senha</h2>
+          <h2 className="text-[#1F3864] font-semibold text-lg mb-1">Recuperar Senha</h2>
+          <p className="text-gray-500 text-sm mb-4">Informe seu e-mail e enviaremos um link para redefinir sua senha.</p>
           {message && (
             <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg p-3 mb-4">{message}</div>
           )}
@@ -53,7 +54,7 @@ export default function ForgotPassword() {
             </div>
             <button type="submit" disabled={loading}
               className="w-full bg-[#F5C518] text-[#1F3864] font-bold py-2.5 rounded-lg hover:bg-yellow-400 transition disabled:opacity-50">
-              {loading ? "Enviando..." : "Enviar e-mail de recuperação"}
+              {loading ? "Enviando..." : "Enviar Link de Recuperação"}
             </button>
           </form>
           <p className="text-center text-sm text-gray-500 mt-4">
