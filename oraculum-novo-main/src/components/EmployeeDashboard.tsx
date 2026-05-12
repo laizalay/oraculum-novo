@@ -25,6 +25,7 @@ export default function EmployeeDashboard() {
   const [activeTab, setActiveTab] = useState<"home" | "quiz" | "leveling_intro">("home");
   const [quizAttempts, setQuizAttempts] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   const loadData = async () => {
     if (!user) return;
@@ -32,7 +33,7 @@ export default function EmployeeDashboard() {
     if (profileSnap.exists()) {
       const prof = profileSnap.data() as Profile;
       setProfile(prof);
-      if (!prof.leveling_completed) setActiveTab("leveling_intro");
+      if (!prof.leveling_completed) setShowWelcome(true);
     }
     const attemptsSnap = await getDocs(query(collection(db, "quiz_attempts"), where("user_id", "==", user.uid)));
     setQuizAttempts(attemptsSnap.size);
@@ -45,6 +46,32 @@ export default function EmployeeDashboard() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <p className="text-gray-500">Carregando...</p>
+      </div>
+    );
+  }
+
+  // Modal de boas-vindas — primeiro acesso
+  if (showWelcome) {
+    const displayName = profile?.name || profile?.full_name || user?.displayName || "Usuário";
+    return (
+      <div className="min-h-screen bg-[#1F3864] flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full text-center">
+          <div className="w-16 h-16 mx-auto rounded-full bg-[#F5C518] flex items-center justify-center mb-4">
+            <Shield className="w-8 h-8 text-[#1F3864]" />
+          </div>
+          <h2 className="text-xl font-bold text-[#1F3864] mb-2">
+            Bem-vindo, {displayName}! 👋
+          </h2>
+          <p className="text-sm text-gray-500 mb-6">
+            Estamos felizes em ter você no Oraculum BB. Vamos descobrir seu nível em cibersegurança com um quiz rápido.
+          </p>
+          <button
+            onClick={() => { setShowWelcome(false); setActiveTab("leveling_intro"); }}
+            className="w-full bg-[#F5C518] text-[#1F3864] font-bold py-3 rounded-lg hover:bg-yellow-400 transition"
+          >
+            Começar
+          </button>
+        </div>
       </div>
     );
   }
