@@ -10,7 +10,6 @@ interface EmployeeData {
   name: string;
   full_name: string;
   level: string;
-  xp: number;
   department: string | null;
   leveling_completed: boolean;
   role: string;
@@ -66,8 +65,8 @@ export default function ManagerDashboard() {
   );
 
   const exportCSV = () => {
-    const headers = "Nome,Nível,XP\n";
-    const rows = employees.map(e => `"${e.name ?? e.full_name}","${levelLabels[e.level] ?? e.level}",${e.xp ?? 0}`).join("\n");
+    const headers = "Nome,Nível\n";
+    const rows = employees.map(e => `"${e.name ?? e.full_name}","${levelLabels[e.level] ?? e.level}"`).join("\n");
     const blob = new Blob([headers + rows], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -207,4 +206,4 @@ export default function ManagerDashboard() {
       </div>
     </div>
   );
-}
+      }
