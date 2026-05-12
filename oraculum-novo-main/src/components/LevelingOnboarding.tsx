@@ -1,16 +1,45 @@
 import { Target, Sparkles, TrendingUp, ShieldCheck } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { useState, useEffect } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../services/firebase";
 
 interface LevelingOnboardingProps {
   onStart: () => void;
 }
 
 export default function LevelingOnboarding({ onStart }: LevelingOnboardingProps) {
+  const { user } = useAuth();
+  const [displayName, setDisplayName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchName = async () => {
+      if (!user) return;
+      try {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (snap.exists()) {
+          const data = snap.data();
+          setDisplayName(data.name || data.full_name || user.displayName || null);
+        }
+      } catch {
+        setDisplayName(user.displayName || null);
+      }
+    };
+    fetchName();
+  }, [user]);
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-lg p-6 max-w-sm w-full">
         <div className="w-16 h-16 mx-auto rounded-2xl bg-[#F5C518] flex items-center justify-center mb-4">
           <Target className="w-8 h-8 text-[#1F3864]" />
         </div>
+
+        {displayName && (
+          <p className="text-center text-sm text-[#1F3864] font-semibold mb-1">
+            Olá, {displayName}! 👋
+          </p>
+        )}
 
         <h2 className="text-xl font-bold text-gray-800 text-center mb-2">
           Bem-vindo ao Quiz de Nivelamento!
