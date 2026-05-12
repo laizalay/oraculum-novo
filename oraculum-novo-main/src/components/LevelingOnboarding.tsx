@@ -1,8 +1,5 @@
 import { Target, Sparkles, TrendingUp, ShieldCheck } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { useState, useEffect } from "react";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "../services/firebase";
 
 interface LevelingOnboardingProps {
   onStart: () => void;
@@ -10,23 +7,7 @@ interface LevelingOnboardingProps {
 
 export default function LevelingOnboarding({ onStart }: LevelingOnboardingProps) {
   const { user } = useAuth();
-  const [displayName, setDisplayName] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchName = async () => {
-      if (!user) return;
-      try {
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (snap.exists()) {
-          const data = snap.data();
-          setDisplayName(data.name || data.full_name || user.displayName || null);
-        }
-      } catch {
-        setDisplayName(user.displayName || null);
-      }
-    };
-    fetchName();
-  }, [user]);
+  const displayName = user?.displayName || null;
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
