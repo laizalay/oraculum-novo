@@ -1,7 +1,7 @@
 [build]
-  base = "oraculum-novo-main"
+  base = "oraculum-novo-main/oraculum-novo-main"
   command = "npm run build"
-  publish = "oraculum-novo-main/dist"
+  publish = "oraculum-novo-main/oraculum-novo-main/dist"
 
 [[redirects]]
   from = "/*"
