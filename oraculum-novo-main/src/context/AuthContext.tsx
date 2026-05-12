@@ -38,6 +38,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function register(name: string, email: string, password: string) {
     const { user } = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(user, { displayName: name });
+    // Força atualização do user no estado após updateProfile
+    setUser({ ...user });
     await sendEmailVerification(user);
     await setDoc(doc(db, "users", user.uid), {
       name,
@@ -71,3 +73,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
+
