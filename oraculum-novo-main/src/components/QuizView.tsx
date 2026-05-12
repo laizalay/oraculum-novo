@@ -130,7 +130,6 @@ export default function QuizView({ onBack }: QuizViewProps) {
           completed_at: new Date().toISOString(),
         });
         await updateDoc(doc(db, "users", user.uid), {
-          xp: score * 10,
           level,
           leveling_completed: true,
         });
