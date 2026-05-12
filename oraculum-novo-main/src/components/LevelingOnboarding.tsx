@@ -1,14 +1,11 @@
 import { Target, Sparkles, TrendingUp, ShieldCheck } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
 
 interface LevelingOnboardingProps {
   onStart: () => void;
+  userName?: string;
 }
 
-export default function LevelingOnboarding({ onStart }: LevelingOnboardingProps) {
-  const { user } = useAuth();
-  const displayName = user?.displayName || null;
-
+export default function LevelingOnboarding({ onStart, userName }: LevelingOnboardingProps) {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-lg p-6 max-w-sm w-full">
@@ -16,9 +13,9 @@ export default function LevelingOnboarding({ onStart }: LevelingOnboardingProps)
           <Target className="w-8 h-8 text-[#1F3864]" />
         </div>
 
-        {displayName && (
+        {userName && (
           <p className="text-center text-sm text-[#1F3864] font-semibold mb-1">
-            Olá, {displayName}! 👋
+            Olá, {userName}! 👋
           </p>
         )}
 
