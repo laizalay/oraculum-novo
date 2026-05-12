@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../services/firebase";
 import { useAuth } from "../context/AuthContext";
@@ -15,7 +15,7 @@ const levelConfig: Record<string, { label: string; color: string }> = {
 interface Profile {
   full_name: string;
   name: string;
-  level: string;
+  level: string | null;
   leveling_completed: boolean;
 }
 
@@ -25,22 +25,42 @@ export default function EmployeeDashboard() {
   const [activeTab, setActiveTab] = useState<"home" | "quiz" | "leveling_intro">("home");
   const [quizAttempts, setQuizAttempts] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!user) return;
-    const profileSnap = await getDoc(doc(db, "users", user.uid));
-    if (profileSnap.exists()) {
-      const prof = profileSnap.data() as Profile;
-      setProfile(prof);
-      if (!prof.leveling_completed) setShowWelcome(true);
-    }
-    const attemptsSnap = await getDocs(query(collection(db, "quiz_attempts"), where("user_id", "==", user.uid)));
-    setQuizAttempts(attemptsSnap.size);
-    setLoading(false);
-  };
+    setLoadError(false);
+    try {
+      const profileSnap = await getDoc(doc(db, "users", user.uid));
+      if (profileSnap.exists()) {
+        const prof = profileSnap.data() as Profile;
+        setProfile(prof);
 
-  useEffect(() => { loadData(); }, [user]);
+        // Boas-vindas só no primeiro acesso — usa localStorage para não repetir
+        if (!prof.leveling_completed) {
+          const welcomeKey = `welcome_shown_${user.uid}`;
+          const alreadyShown = localStorage.getItem(welcomeKey);
+          if (!alreadyShown) {
+            setShowWelcome(true);
+            localStorage.setItem(welcomeKey, "true");
+          } else {
+            setActiveTab("leveling_intro");
+          }
+        }
+      } else {
+        setLoadError(true);
+      }
+      const attemptsSnap = await getDocs(query(collection(db, "quiz_attempts"), where("user_id", "==", user.uid)));
+      setQuizAttempts(attemptsSnap.size);
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => { loadData(); }, [loadData]);
 
   if (loading) {
     return (
@@ -50,7 +70,25 @@ export default function EmployeeDashboard() {
     );
   }
 
-  // Modal de boas-vindas — primeiro acesso
+  // Tela de erro
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full text-center">
+          <p className="text-gray-800 font-semibold mb-2">Não foi possível carregar seus dados</p>
+          <p className="text-sm text-gray-500 mb-6">Verifique sua conexão e tente novamente.</p>
+          <button
+            onClick={() => { setLoading(true); loadData(); }}
+            className="w-full bg-[#F5C518] text-[#1F3864] font-bold py-3 rounded-lg hover:bg-yellow-400 transition"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Modal de boas-vindas — apenas no primeiro acesso
   if (showWelcome) {
     const displayName = profile?.name || profile?.full_name || user?.displayName || "Usuário";
     return (
@@ -79,8 +117,8 @@ export default function EmployeeDashboard() {
   if (activeTab === "leveling_intro") return <LevelingOnboarding onStart={() => setActiveTab("quiz")} />;
   if (activeTab === "quiz") return <QuizView onBack={async () => { setActiveTab("home"); await loadData(); }} />;
 
-  const level = (profile?.level ?? "junior") as string;
-  const config = levelConfig[level] ?? levelConfig.junior;
+  const level = profile?.level;
+  const config = level ? levelConfig[level] : null;
   const quizCompleted = profile?.leveling_completed ?? false;
   const displayName = profile?.name || profile?.full_name || user?.displayName || "Usuário";
 
@@ -111,9 +149,15 @@ export default function EmployeeDashboard() {
             </div>
             <div className="flex-1">
               <h2 className="text-lg font-semibold text-gray-800">{displayName}</h2>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium text-white ${config.color}`}>
-                {config.label}
-              </span>
+              {config ? (
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium text-white ${config.color}`}>
+                  {config.label}
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded-full text-xs font-medium text-gray-400 bg-gray-100">
+                  Nível não definido
+                </span>
+              )}
             </div>
           </div>
           <div>
