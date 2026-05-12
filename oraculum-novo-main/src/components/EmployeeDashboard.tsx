@@ -16,7 +16,6 @@ interface Profile {
   full_name: string;
   name: string;
   level: string;
-  xp: number;
   leveling_completed: boolean;
 }
 
